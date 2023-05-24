@@ -1,12 +1,12 @@
-# SHARP Environmental Mixtures Workshop 2022
+# SHARP Environmental Mixtures Workshop 2023
 
 ![](Images/banner.png)
 
-Columbia University, Mailman School of Public Health. Environmental Mixtures Workshop. July 28-29, 2022. Introduction to multiple techniques to analyze exposure to mixtures in environmental health.
+Columbia University, Mailman School of Public Health. Environmental Mixtures Workshop. July 26-27, 2023. Introduction to multiple techniques to analyze exposure to mixtures in environmental health.
 
 ## Repository guide
 
-Within this repository you will find the code materials used during the Mixtures Workshop 2022. To help you navigate the repository, below is a description of the repository organization.
+Within this repository you will find the code materials used during the Mixtures Workshop 2023. To help you navigate the repository, below is a description of the repository organization.
 
 The repository is organized into two main folders "Unsupervised" and "Supervised" which contained the materials for the unsupervised and supervised methods correspondingly.
 
