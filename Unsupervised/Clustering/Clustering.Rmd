@@ -453,7 +453,7 @@ clu.group3 <- km3$cluster #cluster group
 
 pop_clus3 <- as.tibble((cbind(pop, clu.group3))) %>% 
   mutate(clu.group3 = as.factor(clu.group3)) %>% 
-  mutate(clu.group3 = fct_relevel(clu.group3, ref = "3"))
+  mutate(clu.group3 = fct_relevel(clu.group3, "3"))
 table(pop_clus3$clu.group3)
 
 ```
@@ -586,7 +586,7 @@ Combine clusters grouping with original data outcome and covariants for clusters
 hc.clusters.3 = cutree(hc.complete, 3)
 hc_health_3 <- as.tibble(cbind(pop, hc.clusters.3)) %>% 
   mutate(hc.clusters.3 = as.factor(hc.clusters.3)) %>% 
-  mutate(hc.clusters.3 = fct_relevel(hc.clusters.3, ref = "3"))
+  mutate(hc.clusters.3 = fct_relevel(hc.clusters.3, "3"))
 
 table(hc_health_3$hc.clusters.3)
 ```
