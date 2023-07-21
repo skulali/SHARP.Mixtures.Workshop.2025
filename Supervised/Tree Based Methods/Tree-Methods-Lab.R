@@ -12,8 +12,8 @@ library(BART)
 library(randomForest) 
 
 ## ----load bartmix, message=FALSE----------------------------------------------
-# install.packages("devtools")
-# devtools::install_github("AnderWilson/bartmix")
+# install.packages("remotes")
+# remotes::install_github("AnderWilson/bartmix")
 library(bartmix)
 
 ## ----load data----------------------------------------------------------------
@@ -30,8 +30,6 @@ lnLTL_z <- scale(log(nhanes$TELOMEAN))
 
 ## ----format exposures---------------------------------------------------------
 ## exposures matrix
-## most tree methods are robust to skew and outliers in the predictors
-## in this case we long transform and 
 mixture <- with(nhanes, cbind(LBX074LA, LBX099LA, LBX118LA, LBX138LA, LBX153LA, LBX170LA, LBX180LA, LBX187LA, LBX194LA, LBXHXCLA, LBXPCBLA,
                               LBXD03LA, LBXD05LA, LBXD07LA,
                               LBXF03LA, LBXF04LA, LBXF05LA, LBXF08LA)) 
@@ -59,8 +57,8 @@ set.seed(1000)
 fit_rf <- randomForest(y=lnLTL_z_residuals,
                        x=mixture,
                        ntree=1000,
-                       mtry=6,
-                       importance = TRUE) 
+                       mtry=6,   # number of variables used in each tree
+                       importance = TRUE)  # assess mixture component importance
 
 ## ----predict with random forests----------------------------------------------
 pred_rf <- predict(fit_rf)
@@ -118,10 +116,10 @@ ggplot(varcount, aes(x=exposure, y=mean, ymin=lower, ymax=upper)) +
 
 ## ----BART partial dependence for Furan 1, eval=FALSE--------------------------
 #  # partial dependence of BART
-#  # funan1_pd <- partialdependence1(fit_bart,
-#  #                                 data=cbind(mixture,covariates),
-#  #                                 exposures = "Furan1",
-#  #                                 L=50)
+#  funan1_pd <- partialdependence1(fit_bart,
+#                                  data=cbind(mixture,covariates),
+#                                  exposures = "Furan1",
+#                                  L=50)
 
 ## ----BART partial dependence for Furan 1 visualization------------------------
 ggplot(funan1_pd, aes(x=x, y=mean, ymin=lower, ymax=upper)) + 
@@ -133,10 +131,10 @@ ggplot(funan1_pd, aes(x=x, y=mean, ymin=lower, ymax=upper)) +
   ylab("Estimate (mean response)") 
 
 ## ----BART partial dependence for all components, echo=FALSE, eval=FALSE-------
-#  # all_pd <- partialdependence1(fit_bart,
-#  #                             data=cbind(mixture,covariates),
-#  #                             exposures = exposure_names,
-#  #                             L=50)
+#  all_pd <- partialdependence1(fit_bart,
+#                              data=cbind(mixture,covariates),
+#                              exposures = exposure_names,
+#                              L=50)
 
 ## ----BART partial dependence for all components visualization-----------------
 plt <- all_pd %>%
@@ -169,12 +167,12 @@ mutate(exposure = fct_recode(exposure, "PCB 74" = "PCB74",
 plt
 
 ## ----two way partial dependence with BART, eval=FALSE-------------------------
-#  # pd_2way <- partialdependence2(fit_bart,
-#  #                                 data=cbind(mixture,covariates),
-#  #                                 var = "PCB169",
-#  #                               var2 = "Furan1",
-#  #                               qtls = c(0.1,0.25,0.5,0.75,0.9),
-#  #                                 L=20)
+#  pd_2way <- partialdependence2(fit_bart,
+#                                  data=cbind(mixture,covariates),
+#                                  var = "PCB169",
+#                                var2 = "Furan1",
+#                                qtls = c(0.1,0.25,0.5,0.75,0.9),
+#                                  L=20)
 
 ## ----two way partial dependence with BART visualize---------------------------
 pd_2way$qtl <- as.factor(pd_2way$qtl)
@@ -188,10 +186,10 @@ ggplot(pd_2way, aes(x=x, y=mean,
   ylab("Estimate (mean response)") 
 
 ## ----BART total mixture effect, eval=FALSE------------------------------------
-#  # totalmix <- totalmixtureeffect(fit_bart,
-#  #                                data=cbind(mixture,covariates),
-#  #                                exposures = exposure_names,
-#  #                                qtls = seq(0.2,0.8,0.05))
+#  totalmix <- totalmixtureeffect(fit_bart,
+#                                 data=cbind(mixture,covariates),
+#                                 exposures = exposure_names,
+#                                 qtls = seq(0.2,0.8,0.05))
 
 ## ----BART total mixture effect visualization----------------------------------
 ggplot(totalmix, aes(x=quantile, y=mean, ymin=lower, ymax=upper)) + 
@@ -199,4 +197,88 @@ ggplot(totalmix, aes(x=quantile, y=mean, ymin=lower, ymax=upper)) +
   ggtitle("Total mixture effect with BART") + 
   xlab("Quantile") + 
   ylab("Estimate (mean response)")
+
+## ----subset the data to male and female---------------------------------------
+combind_data <- cbind(mixture,covariates)
+male_data_subset <- combind_data[which(combind_data[,"male"]==1),]
+female_data_subset <- combind_data[which(combind_data[,"male"]==0),]
+
+# dimension and distribution of male in combined data
+dim(combind_data)
+table(combind_data[,"male"])
+# dimension and distribution of male in male only data
+dim(male_data_subset)
+table(male_data_subset[,"male"])
+# dimension and distribution of male in female only data
+dim(female_data_subset)
+table(female_data_subset[,"male"])
+
+## ----estimate partial dependence for each subset, eval=FALSE------------------
+#  # estimate among males with male subset of data
+#  funan1_pd_male_subset <- partialdependence1(fit_bart,
+#                                   data=male_data_subset,  # subset of data provided
+#                                   exposures = "Furan1",
+#                                   L=50)
+#  
+#  # estimate among females with female subset of data
+#  funan1_pd_female_subset <- partialdependence1(fit_bart,
+#                                       data=female_data_subset,   # subset of data provided
+#                                       exposures = "Furan1",
+#                                       L=50)
+
+## ----graph subset specific partial dependence functions-----------------------
+funan1_pd_male_subset$subgroup <- "Male"
+funan1_pd_female_subset$subgroup <- "Female"
+funan1_pd_mf_subset <- rbind(funan1_pd_male_subset,funan1_pd_female_subset)
+ggplot(funan1_pd_mf_subset, aes(x=x, y=mean, ymin=lower, ymax=upper)) + 
+  geom_ribbon(fill="grey70") + 
+  geom_line() + 
+  theme_minimal() + 
+  ggtitle("Funan 1 partial dependence with BART") + 
+  xlab("Exposure (z-score of log-transformed exposure)") + 
+  ylab("Estimate (mean response)")  +
+  facet_grid(.~subgroup)
+
+## ----create datasets where all individuals are assigned one level of the modifier----
+combind_data_allmale <- combind_data
+combind_data_allmale[,"male"] <- 1
+
+combind_data_allfemale <- combind_data
+combind_data_allfemale[,"male"] <- 1
+
+
+
+# dimension and distribution of male in combined data
+dim(combind_data)
+table(combind_data[,"male"])
+# dimension and distribution of male in male only data
+dim(combind_data_allmale)
+table(combind_data_allmale[,"male"])
+# dimension and distribution of male in female only data
+dim(combind_data_allfemale)
+table(combind_data_allfemale[,"male"])
+
+## ----estimate partial dependence functions on each dataset, eval=FALSE--------
+#  funan1_pd_male_all <- partialdependence1(fit_bart,
+#                                       data=combind_data_allmale,
+#                                       exposures = "Furan1",
+#                                       L=50)
+#  
+#  funan1_pd_female_all <- partialdependence1(fit_bart,
+#                                         data=combind_data_allfemale,
+#                                         exposures = "Furan1",
+#                                         L=50)
+
+## ----graph subset specific partial dependence functions using alternative approach----
+funan1_pd_male_all$subgroup <- "Male"
+funan1_pd_female_all$subgroup <- "Female"
+funan1_pd_mf_all <- rbind(funan1_pd_male_all,funan1_pd_female_all)
+ggplot(funan1_pd_mf_all, aes(x=x, y=mean, ymin=lower, ymax=upper)) + 
+  geom_ribbon(fill="grey70") + 
+  geom_line() + 
+  theme_minimal() + 
+  ggtitle("Funan 1 partial dependence with BART") + 
+  xlab("Exposure (z-score of log-transformed exposure)") + 
+  ylab("Estimate (mean response)")  +
+  facet_grid(.~subgroup)
 

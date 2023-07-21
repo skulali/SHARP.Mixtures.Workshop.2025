@@ -1,7 +1,7 @@
 ---
-title: "Tree Methods Lab 2022"
+title: "Tree Methods Lab 2023"
 author: "Ander Wilson"
-date: "7/25/2022"
+date: "7/26/2023"
 output: 
   html_document:
     toc: TRUE
@@ -45,13 +45,15 @@ library(BART)
 library(randomForest) 
 ```
 
-### Uncomment the below and then load bartmix library when running for first time
+### Lab-specific package
+
+Uncomment the below and then load `bartmix` library when running for first time
 
 This package has some functions to post-process the MCMC from BART models. You can adapt the code in this package to meet other estimation needs with BART.
 
 ```{r load bartmix, message=FALSE}
-# install.packages("devtools")
-# devtools::install_github("AnderWilson/bartmix")
+# install.packages("remotes")
+# remotes::install_github("AnderWilson/bartmix")
 library(bartmix)
 ```
 
@@ -75,8 +77,6 @@ lnLTL_z <- scale(log(nhanes$TELOMEAN))
 
 ```{r format exposures}
 ## exposures matrix
-## most tree methods are robust to skew and outliers in the predictors
-## in this case we long transform and 
 mixture <- with(nhanes, cbind(LBX074LA, LBX099LA, LBX118LA, LBX138LA, LBX153LA, LBX170LA, LBX180LA, LBX187LA, LBX194LA, LBXHXCLA, LBXPCBLA,
                               LBXD03LA, LBXD05LA, LBXD07LA,
                               LBXF03LA, LBXF04LA, LBXF05LA, LBXF08LA)) 
@@ -121,8 +121,8 @@ set.seed(1000)
 fit_rf <- randomForest(y=lnLTL_z_residuals,
                        x=mixture,
                        ntree=1000,
-                       mtry=6,
-                       importance = TRUE) 
+                       mtry=6,   # number of variables used in each tree
+                       importance = TRUE)  # assess mixture component importance
 ```
 
 ### Prediction
@@ -229,10 +229,10 @@ The partial dependence functions with BART include uncertainty.
 
 ```{r BART partial dependence for Furan 1, eval=FALSE}
 # partial dependence of BART
-# funan1_pd <- partialdependence1(fit_bart, 
-#                                 data=cbind(mixture,covariates), 
-#                                 exposures = "Furan1", 
-#                                 L=50) 
+funan1_pd <- partialdependence1(fit_bart,
+                                data=cbind(mixture,covariates),
+                                exposures = "Furan1",
+                                L=50)
 ```
 
 ```{r BART partial dependence for Furan 1 visualization}
@@ -246,10 +246,10 @@ ggplot(funan1_pd, aes(x=x, y=mean, ymin=lower, ymax=upper)) +
 ```
 
 ```{r BART partial dependence for all components, echo=FALSE, eval=FALSE}
-# all_pd <- partialdependence1(fit_bart,
-#                             data=cbind(mixture,covariates),
-#                             exposures = exposure_names,
-#                             L=50)
+all_pd <- partialdependence1(fit_bart,
+                            data=cbind(mixture,covariates),
+                            exposures = exposure_names,
+                            L=50)
 ```
 
 ```{r BART partial dependence for all components visualization}
@@ -285,15 +285,15 @@ plt
 
 ### 2-way partial dependence
 
-One form of a 2-way partial dependence plot shows the partial dependence of one exposure at different quantiles of another exposure. In this case, the partial dependence plot for PCB169 is shown at five quantiles of Furan 1. There is no evidence of interaction so the lines are exactly on top of each other.
+One form of a 2-way partial dependence plot shows the partial dependence of one exposure at different percentiles of another exposure. In this case, the partial dependence plot for PCB169 is shown at five percentiles of Furan 1. There is no evidence of interaction so the lines are exactly on top of each other.
 
 ```{r two way partial dependence with BART, eval=FALSE}
-# pd_2way <- partialdependence2(fit_bart, 
-#                                 data=cbind(mixture,covariates),
-#                                 var = "PCB169", 
-#                               var2 = "Furan1",
-#                               qtls = c(0.1,0.25,0.5,0.75,0.9),
-#                                 L=20)
+pd_2way <- partialdependence2(fit_bart,
+                                data=cbind(mixture,covariates),
+                                var = "PCB169",
+                              var2 = "Furan1",
+                              qtls = c(0.1,0.25,0.5,0.75,0.9),
+                                L=20)
 ```
 
 
@@ -316,10 +316,10 @@ We can estimate the total mixture effect in the same way that is typical with BK
 
 
 ```{r BART total mixture effect, eval=FALSE}
-# totalmix <- totalmixtureeffect(fit_bart, 
-#                                data=cbind(mixture,covariates), 
-#                                exposures = exposure_names,
-#                                qtls = seq(0.2,0.8,0.05))
+totalmix <- totalmixtureeffect(fit_bart,
+                               data=cbind(mixture,covariates),
+                               exposures = exposure_names,
+                               qtls = seq(0.2,0.8,0.05))
 ```
 
 ```{r BART total mixture effect visualization}
@@ -332,8 +332,130 @@ ggplot(totalmix, aes(x=quantile, y=mean, ymin=lower, ymax=upper)) +
 
 
 
+### Subgroup specific effects
+
+BART naturally accounts for heterogeneity. Because we included all exposures and covariates in the model there can be interactions both among exposures and among exposures and covaraites. There are two approaches to estimate subgroup specific effects
+
+First, we can estimate the exposure-response relationship in different subgroups. Below we estimate the partial dependence function for Furan 1 among males and females. This is from the same model fit as before. We are simply using the posterior sample to estimate a different estimand.
+
+The first step is to subset the data based on the subgroups of interest.
+
+```{r subset the data to male and female}
+combind_data <- cbind(mixture,covariates)
+male_data_subset <- combind_data[which(combind_data[,"male"]==1),]
+female_data_subset <- combind_data[which(combind_data[,"male"]==0),]
+
+# dimension and distribution of male in combined data
+dim(combind_data)
+table(combind_data[,"male"])
+# dimension and distribution of male in male only data
+dim(male_data_subset)
+table(male_data_subset[,"male"])
+# dimension and distribution of male in female only data
+dim(female_data_subset)
+table(female_data_subset[,"male"])
+```
+
+Next, estimate the partial dependence function for each subgroup. Alternatively, estimate the total mixture effect or interactions. 
+
+```{r estimate partial dependence for each subset, eval=FALSE}
+# estimate among males with male subset of data
+funan1_pd_male_subset <- partialdependence1(fit_bart,
+                                 data=male_data_subset,  # subset of data provided
+                                 exposures = "Furan1",
+                                 L=50)
+
+# estimate among females with female subset of data
+funan1_pd_female_subset <- partialdependence1(fit_bart,
+                                     data=female_data_subset,   # subset of data provided
+                                     exposures = "Furan1",
+                                     L=50)
+```
+
+
+Finally, we can visualize the difference.
+
+
+```{r graph subset specific partial dependence functions}
+funan1_pd_male_subset$subgroup <- "Male"
+funan1_pd_female_subset$subgroup <- "Female"
+funan1_pd_mf_subset <- rbind(funan1_pd_male_subset,funan1_pd_female_subset)
+ggplot(funan1_pd_mf_subset, aes(x=x, y=mean, ymin=lower, ymax=upper)) + 
+  geom_ribbon(fill="grey70") + 
+  geom_line() + 
+  theme_minimal() + 
+  ggtitle("Funan 1 partial dependence with BART") + 
+  xlab("Exposure (z-score of log-transformed exposure)") + 
+  ylab("Estimate (mean response)")  +
+  facet_grid(.~subgroup)
+```
+
+
+An alternative approach is to use the full dataset but set all individuals to male or female. This eliminates differences in the distribution of covariates between the two groups (e.g. differences in age, BMI, exposures, etc.).
+
+First, create the combined datasets.
+
+```{r create datasets where all individuals are assigned one level of the modifier}
+combind_data_allmale <- combind_data
+combind_data_allmale[,"male"] <- 1
+
+combind_data_allfemale <- combind_data
+combind_data_allfemale[,"male"] <- 1
+
+
+
+# dimension and distribution of male in combined data
+dim(combind_data)
+table(combind_data[,"male"])
+# dimension and distribution of male in male only data
+dim(combind_data_allmale)
+table(combind_data_allmale[,"male"])
+# dimension and distribution of male in female only data
+dim(combind_data_allfemale)
+table(combind_data_allfemale[,"male"])
+```
+
+
+Next, estiamte the partial dependence using each dataset.
+
+```{r estimate partial dependence functions on each dataset, eval=FALSE}
+funan1_pd_male_all <- partialdependence1(fit_bart,
+                                     data=combind_data_allmale,
+                                     exposures = "Furan1",
+                                     L=50)
+
+funan1_pd_female_all <- partialdependence1(fit_bart,
+                                       data=combind_data_allfemale,
+                                       exposures = "Furan1",
+                                       L=50)
+```
+
+
+Finally, graph the results.
+
+
+```{r graph subset specific partial dependence functions using alternative approach}
+funan1_pd_male_all$subgroup <- "Male"
+funan1_pd_female_all$subgroup <- "Female"
+funan1_pd_mf_all <- rbind(funan1_pd_male_all,funan1_pd_female_all)
+ggplot(funan1_pd_mf_all, aes(x=x, y=mean, ymin=lower, ymax=upper)) + 
+  geom_ribbon(fill="grey70") + 
+  geom_line() + 
+  theme_minimal() + 
+  ggtitle("Funan 1 partial dependence with BART") + 
+  xlab("Exposure (z-score of log-transformed exposure)") + 
+  ylab("Estimate (mean response)")  +
+  facet_grid(.~subgroup)
+```
+
+
+
+
+
 ```{r save results, include=FALSE, purl=FALSE}
 # this is used to save results from the full run
-# save(fit_bart, funan1_pd, all_pd, totalmix, pd_2way, file="bart_fits_for_lab.rda")
+save(fit_bart, funan1_pd, all_pd, totalmix, pd_2way, 
+     funan1_pd_male_all, funan1_pd_female_all, funan1_pd_male_subset, funan1_pd_female_subset, 
+     file="bart_fits_for_lab.rda")
 ```
 
