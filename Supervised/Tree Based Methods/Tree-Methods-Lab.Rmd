@@ -189,7 +189,7 @@ load(paste0(here::here(), "/Supervised/Tree Based Methods/bart_fits_for_lab.rda"
 ```
 ### Fitted values
 
-Fitted values in BART are the estiamted mean response at the observed values. Note that this is very different that the random forest plot because the covariates have not been regressed out of the outcome.
+Fitted values in BART are the estimated mean response at the observed values. Note that this is very different that the random forest plot because the covariates have not been regressed out of the outcome.
 
 ```{r fitted values}
 plot(fit_bart$yhat.train.mean~lnLTL_z, 
@@ -416,7 +416,7 @@ table(combind_data_allfemale[,"male"])
 ```
 
 
-Next, estiamte the partial dependence using each dataset.
+Next, estimate the partial dependence using each dataset.
 
 ```{r estimate partial dependence functions on each dataset, eval=FALSE}
 funan1_pd_male_all <- partialdependence1(fit_bart,

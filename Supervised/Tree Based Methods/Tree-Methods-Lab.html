@@ -1710,7 +1710,7 @@ fit_bart &lt;- gbart(x.train=cbind(mixture,covariates),
 </div>
 <div id="fitted-values" class="section level3">
 <h3>Fitted values</h3>
-<p>Fitted values in BART are the estiamted mean response at the observed
+<p>Fitted values in BART are the estimated mean response at the observed
 values. Note that this is very different that the random forest plot
 because the covariates have not been regressed out of the outcome.</p>
 <pre class="r"><code>plot(fit_bart$yhat.train.mean~lnLTL_z, 
@@ -1933,7 +1933,7 @@ dim(combind_data_allfemale)</code></pre>
 <pre><code>## 
 ##    1 
 ## 1003</code></pre>
-<p>Next, estiamte the partial dependence using each dataset.</p>
+<p>Next, estimate the partial dependence using each dataset.</p>
 <pre class="r"><code>funan1_pd_male_all &lt;- partialdependence1(fit_bart,
                                      data=combind_data_allmale,
                                      exposures = &quot;Furan1&quot;,
