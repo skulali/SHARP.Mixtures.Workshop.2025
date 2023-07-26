@@ -244,7 +244,7 @@ combind_data_allmale <- combind_data
 combind_data_allmale[,"male"] <- 1
 
 combind_data_allfemale <- combind_data
-combind_data_allfemale[,"male"] <- 1
+combind_data_allfemale[,"male"] <- 0
 
 
 
