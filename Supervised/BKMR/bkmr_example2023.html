@@ -1560,10 +1560,11 @@ knots50     &lt;- fields::cover.design(lnmixture_z, nd = 50)$design
 </div>
 <div id="fit-models" class="section level2">
 <h2>Fit Models</h2>
-<div id="group-vs-fit-with-all-exposures-using-gpp-and-100-knots" class="section level3">
-<h3>Group VS Fit with all Exposures using GPP and 100 Knots</h3>
-<pre class="r"><code>### Group VS fit with all exposures using GPP and 100 knots 
-load(&quot;Supervised/BKMR/saved_model/NHANES_knots50.RData&quot;)
+<div id="group-vs-fit-with-all-exposures-using-gpp-and-50-knots" class="section level3">
+<h3>Group VS Fit with all Exposures using GPP and 50 Knots</h3>
+<pre class="r"><code>### Group VS fit with all exposures using GPP and 50 knots 
+#load(&quot;Supervised/BKMR/saved_model/NHANES_knots50.RData&quot;)
+load(paste0(here::here(), &quot;/Supervised/BKMR/saved_model/NHANES_knots50.RData&quot;))
 
 ##### fit BKMR models WITH Gaussian predictive process using 50 knots
 
@@ -1582,7 +1583,7 @@ temp &lt;-  kmbayes(y=lnLTL_z, Z=lnmixture_z, X=covariates, iter=100, verbose=TR
                              groups=c(rep(1,times=2), 2, rep(1,times=6), rep(3,times=2), rep(2,times=7)), knots=knots50)</code></pre>
 <pre><code>## Warning in if (class(knots) != &quot;matrix&quot;) knots &lt;- as.matrix(knots): the
 ## condition has length &gt; 1 and only the first element will be used</code></pre>
-<pre><code>## Iteration: 10 (10% completed; 2.19627 secs elapsed)</code></pre>
+<pre><code>## Iteration: 10 (10% completed; 1.84704 secs elapsed)</code></pre>
 <pre><code>## Acceptance rates for Metropolis-Hastings algorithm:
 ##               param      rate
 ## 1            lambda 0.3333333
@@ -1590,7 +1591,7 @@ temp &lt;-  kmbayes(y=lnLTL_z, Z=lnmixture_z, X=covariates, iter=100, verbose=TR
 ## 3 r/delta  (move 1) 0.5000000
 ## 4 r/delta  (move 2) 1.0000000
 ## 5 r/delta  (move 3) 1.0000000</code></pre>
-<pre><code>## Iteration: 20 (20% completed; 4.21143 secs elapsed)</code></pre>
+<pre><code>## Iteration: 20 (20% completed; 3.29806 secs elapsed)</code></pre>
 <pre><code>## Acceptance rates for Metropolis-Hastings algorithm:
 ##               param      rate
 ## 1            lambda 0.1578947
@@ -1598,7 +1599,7 @@ temp &lt;-  kmbayes(y=lnLTL_z, Z=lnmixture_z, X=covariates, iter=100, verbose=TR
 ## 3 r/delta  (move 1) 0.2222222
 ## 4 r/delta  (move 2) 0.5000000
 ## 5 r/delta  (move 3) 0.8333333</code></pre>
-<pre><code>## Iteration: 30 (30% completed; 6.7467 secs elapsed)</code></pre>
+<pre><code>## Iteration: 30 (30% completed; 5.05993 secs elapsed)</code></pre>
 <pre><code>## Acceptance rates for Metropolis-Hastings algorithm:
 ##               param      rate
 ## 1            lambda 0.1034483
@@ -1606,7 +1607,7 @@ temp &lt;-  kmbayes(y=lnLTL_z, Z=lnmixture_z, X=covariates, iter=100, verbose=TR
 ## 3 r/delta  (move 1) 0.2500000
 ## 4 r/delta  (move 2) 0.5000000
 ## 5 r/delta  (move 3) 0.5555556</code></pre>
-<pre><code>## Iteration: 40 (40% completed; 8.82216 secs elapsed)</code></pre>
+<pre><code>## Iteration: 40 (40% completed; 6.46963 secs elapsed)</code></pre>
 <pre><code>## Acceptance rates for Metropolis-Hastings algorithm:
 ##               param       rate
 ## 1            lambda 0.07692308
@@ -1614,7 +1615,7 @@ temp &lt;-  kmbayes(y=lnLTL_z, Z=lnmixture_z, X=covariates, iter=100, verbose=TR
 ## 3 r/delta  (move 1) 0.25000000
 ## 4 r/delta  (move 2) 0.58333333
 ## 5 r/delta  (move 3) 0.45454545</code></pre>
-<pre><code>## Iteration: 50 (50% completed; 10.7595 secs elapsed)</code></pre>
+<pre><code>## Iteration: 50 (50% completed; 7.97927 secs elapsed)</code></pre>
 <pre><code>## Acceptance rates for Metropolis-Hastings algorithm:
 ##               param       rate
 ## 1            lambda 0.06122449
@@ -1622,7 +1623,7 @@ temp &lt;-  kmbayes(y=lnLTL_z, Z=lnmixture_z, X=covariates, iter=100, verbose=TR
 ## 3 r/delta  (move 1) 0.40000000
 ## 4 r/delta  (move 2) 0.57142857
 ## 5 r/delta  (move 3) 0.40000000</code></pre>
-<pre><code>## Iteration: 60 (60% completed; 12.38931 secs elapsed)</code></pre>
+<pre><code>## Iteration: 60 (60% completed; 9.53682 secs elapsed)</code></pre>
 <pre><code>## Acceptance rates for Metropolis-Hastings algorithm:
 ##               param       rate
 ## 1            lambda 0.05084746
@@ -1630,7 +1631,7 @@ temp &lt;-  kmbayes(y=lnLTL_z, Z=lnmixture_z, X=covariates, iter=100, verbose=TR
 ## 3 r/delta  (move 1) 0.36000000
 ## 4 r/delta  (move 2) 0.53333333
 ## 5 r/delta  (move 3) 0.42105263</code></pre>
-<pre><code>## Iteration: 70 (70% completed; 14.21351 secs elapsed)</code></pre>
+<pre><code>## Iteration: 70 (70% completed; 11.11281 secs elapsed)</code></pre>
 <pre><code>## Acceptance rates for Metropolis-Hastings algorithm:
 ##               param       rate
 ## 1            lambda 0.04347826
@@ -1638,7 +1639,7 @@ temp &lt;-  kmbayes(y=lnLTL_z, Z=lnmixture_z, X=covariates, iter=100, verbose=TR
 ## 3 r/delta  (move 1) 0.36666667
 ## 4 r/delta  (move 2) 0.50000000
 ## 5 r/delta  (move 3) 0.38095238</code></pre>
-<pre><code>## Iteration: 80 (80% completed; 16.04141 secs elapsed)</code></pre>
+<pre><code>## Iteration: 80 (80% completed; 12.71801 secs elapsed)</code></pre>
 <pre><code>## Acceptance rates for Metropolis-Hastings algorithm:
 ##               param       rate
 ## 1            lambda 0.03797468
@@ -1646,7 +1647,7 @@ temp &lt;-  kmbayes(y=lnLTL_z, Z=lnmixture_z, X=covariates, iter=100, verbose=TR
 ## 3 r/delta  (move 1) 0.35294118
 ## 4 r/delta  (move 2) 0.45000000
 ## 5 r/delta  (move 3) 0.32000000</code></pre>
-<pre><code>## Iteration: 90 (90% completed; 17.68419 secs elapsed)</code></pre>
+<pre><code>## Iteration: 90 (90% completed; 14.42231 secs elapsed)</code></pre>
 <pre><code>## Acceptance rates for Metropolis-Hastings algorithm:
 ##               param       rate
 ## 1            lambda 0.03370787
@@ -1654,7 +1655,7 @@ temp &lt;-  kmbayes(y=lnLTL_z, Z=lnmixture_z, X=covariates, iter=100, verbose=TR
 ## 3 r/delta  (move 1) 0.35135135
 ## 4 r/delta  (move 2) 0.45833333
 ## 5 r/delta  (move 3) 0.32142857</code></pre>
-<pre><code>## Iteration: 100 (100% completed; 20.75907 secs elapsed)</code></pre>
+<pre><code>## Iteration: 100 (100% completed; 16.01297 secs elapsed)</code></pre>
 <pre><code>## Acceptance rates for Metropolis-Hastings algorithm:
 ##               param       rate
 ## 1            lambda 0.03030303
@@ -1726,7 +1727,8 @@ summary(fit_gvs_knots50) # provides a lot of info including posterior probabilit
 ## 
 ## Posterior inclusion probabilities:</code></pre>
 <pre><code>## Warning: `data_frame()` was deprecated in tibble 1.1.0.
-## Please use `tibble()` instead.</code></pre>
+
+## Warning: Please use `tibble()` instead.</code></pre>
 <pre><code>##    variable group groupPIP condPIP
 ## 1     PCB74     1  0.43154 0.10553
 ## 2     PCB99     1  0.43154 0.13862

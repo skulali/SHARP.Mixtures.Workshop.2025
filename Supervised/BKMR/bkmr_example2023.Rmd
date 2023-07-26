@@ -89,10 +89,10 @@ knots50     <- fields::cover.design(lnmixture_z, nd = 50)$design
 
 ## Fit Models
 
-### Group VS Fit with all Exposures using GPP and 100 Knots 
+### Group VS Fit with all Exposures using GPP and 50 Knots 
 
 ```{r model}
-### Group VS fit with all exposures using GPP and 100 knots 
+### Group VS fit with all exposures using GPP and 50 knots 
 #load("Supervised/BKMR/saved_model/NHANES_knots50.RData")
 load(paste0(here::here(), "/Supervised/BKMR/saved_model/NHANES_knots50.RData"))
 
