@@ -93,7 +93,8 @@ knots50     <- fields::cover.design(lnmixture_z, nd = 50)$design
 
 ```{r model}
 ### Group VS fit with all exposures using GPP and 100 knots 
-load("Supervised/BKMR/saved_model/NHANES_knots50.RData")
+#load("Supervised/BKMR/saved_model/NHANES_knots50.RData")
+load(paste0(here::here(), "/Supervised/BKMR/saved_model/NHANES_knots50.RData"))
 
 ##### fit BKMR models WITH Gaussian predictive process using 50 knots
 
