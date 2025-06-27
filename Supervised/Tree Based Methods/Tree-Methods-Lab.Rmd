@@ -458,4 +458,3 @@ save(fit_bart, funan1_pd, all_pd, totalmix, pd_2way,
      funan1_pd_male_all, funan1_pd_female_all, funan1_pd_male_subset, funan1_pd_female_subset, 
      file="bart_fits_for_lab.rda")
 ```
-
