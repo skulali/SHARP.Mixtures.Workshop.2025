@@ -1,0 +1,155 @@
+---
+title: "Tree Methods Lab 2: Random Forests"
+author: "Ander Wilson"
+output: 
+  html_document:
+    toc: TRUE
+    toc_float: TRUE
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE, purl=FALSE}
+library(knitr)
+opts_chunk$set(echo = TRUE)
+knit_hooks$set(purl = hook_purl) 
+```
+
+## Lab overview
+
+In this lab we conduct an analysis of the NHANES data using two approaches:
+
+- Random forests with covariates regressed out prior to fitting the random forest model.
+
+
+
+
+## Setup
+
+Load the packages used in this lab.
+
+```{r load packages, message=FALSE}
+## load required libraries 
+#install.packages("corrplot")
+library(corrplot)
+#install.packages("ggplot2")
+library(ggplot2)
+#install.packages("tidyverse")
+library(tidyverse)
+#install.packages("randomForest")
+library(randomForest) 
+```
+
+## Load and format data
+
+Load in the data and do some data preparation. The packages used here (`randomForests` and `BART`) can handle cateogrical predictors. We therefore do less data preparation because we do not need to make dummy variables.
+
+```{r load data}
+## read in data and only consider complete data 
+## this drops 327 individuals
+## some tree methods handle missing data but we will not deal with that here
+nhanes <- na.omit(read.csv(paste0(here::here(),"/Data/studypop.csv")))
+```
+
+```{r format outcome}
+## our y variable - ln transformed and scaled mean telomere length
+## some tree methods make assumptions about the error variance and some do not
+## generally safer to transform the dependent variable to reduce heteroskedasticity
+lnLTL_z <- scale(log(nhanes$TELOMEAN)) 
+```
+
+```{r format exposures}
+## exposures matrix
+mixture <- with(nhanes, cbind(LBX074LA, LBX099LA, LBX118LA, LBX138LA, LBX153LA, LBX170LA, LBX180LA, LBX187LA, LBX194LA, LBXHXCLA, LBXPCBLA,
+                              LBXD03LA, LBXD05LA, LBXD07LA,
+                              LBXF03LA, LBXF04LA, LBXF05LA, LBXF08LA)) 
+# Most tree models are invariant the transformations of the predictors (they don't make a difference)
+# here we transform it to make the plots consistent with other methods so they can be compared
+mixture   <- apply(mixture, 2, log)
+mixture <- scale(mixture)
+colnames(mixture) <- c(paste0("PCB",c(74, 99, 118, 138, 153, 170, 180, 187, 194, 169, 126)), 
+                           paste0("Dioxin",1:3), paste0("Furan",1:4)) 
+exposure_names <- colnames(mixture)
+```
+
+```{r format covariates}
+## our X matrix
+covariates <- with(nhanes, cbind(age_cent, male, bmi_cat3, edu_cat, race_cat,
+                                 LBXWBCSI, LBXLYPCT, LBXMOPCT, 
+                                 LBXNEPCT, LBXEOPCT, LBXBAPCT, ln_lbxcot)) 
+```
+
+
+
+
+## Regress out covariates
+
+For the random forest analysis we will regress the covariates out prior to fitting the random forest model. This model can be fit by including the covariates in the random forest model instead. The BART analysis provides an example of this.
+
+```{r regress out covariates}
+# regress covariates out
+lnLTL_z_residuals <- lm(lnLTL_z~covariates)$residuals
+```
+
+
+## Fit random forest
+
+The key hyperparameters here are the number of trees (`mtree`) and the number of variables used in each tree (`mtry`). These hyperparameters could be selected with cross validation and/or sensitivity analyses can be used.
+
+```{r fit random forest}
+# fit the random forest model
+set.seed(1000)
+fit_rf <- randomForest(y=lnLTL_z_residuals,
+                       x=mixture,
+                       ntree=1000,
+                       mtry=6,   # number of variables used in each tree
+                       importance = TRUE)  # assess mixture component importance
+```
+
+## Prediction
+
+
+```{r predict with random forests}
+pred_rf <- predict(fit_rf)
+
+# view predicted vs observed
+plot(pred_rf~lnLTL_z_residuals, 
+     main="Predicted vs observed with random forest")
+```
+
+
+
+## Variable importance
+
+There are many measures of variable importance in trees and none is perfect. Two standard ones for random forests are:  
+- Node Purity: how much splits on a variable improve model fit (reduce MSE for continuous outcomes)
+- Percent increase in MSE: a permutation approach that is normalized out of bag prediction error
+In both cases higher is more important.
+
+```{r variable importance with random forests quick plot}
+varImpPlot(fit_rf, main = "Random forest important variables", type=1)
+```
+
+
+```{r variable importance with random forests}
+# extract variable importance from the fit random forest model
+rf_var_imortance <- importance(fit_rf)
+rf_var_imortance
+```
+
+
+## Partial dependence plots
+
+The partial dependence plot shows the main effect of one exposure averaged over values of the other exposures. In this example we are only averaging over the other mixture covariates. We are not allowing for heterogeneity based on covariates because they were regressed out prior to estimating the random forest model. Note that there is no measure of uncertainty (no confidence intervals).
+
+```{r random forest partial dependence plot for Furan 1 }
+partialPlot(x = fit_rf, 
+            pred.data = mixture, 
+            x.var = "Furan1",
+            main = "Funan 1 partial dependence with random forest", 
+            xlab = "Exposure (z-score of log-transformed exposure)",
+            ylab = "Estimate (mean response)") 
+```
+
+See `rfutilities` package for confidence intervals for partial dependence plots with random forests.
+

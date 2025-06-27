@@ -1,7 +1,6 @@
 ---
 title: "Lasso and Elastic Net"
-author: "Ahlam Abuawad"
-date: "7/12/2019"
+date: "7/17/2024"
 output: 
   html_document:
     toc: TRUE
@@ -182,9 +181,9 @@ lasso_mse
 The final code chunk saves the best lasso coefficients for later use. 
 
 ```{r combo_plot_lasso}
-lasso_beta = cbind(rownames(coef_lasso), as.vector(coef_lasso)) %>% 
-  as.tibble() %>% 
-  rename(variable = 1, beta = 2) %>% 
+lasso_beta = 
+  cbind(variable = rownames(coef_lasso), beta = as.vector(coef_lasso)) %>% 
+  as_tibble() %>% 
   mutate(beta = as.numeric(beta)) %>% 
   filter(variable != "(Intercept)") %>% 
   mutate(method = "Lasso")
@@ -264,9 +263,9 @@ elnet_mse
 The final code chunk saves the best lasso coefficients for later use. 
 
 ```{r combo_plot_enet}
-enet_beta <- cbind(rownames(coef_elnet), as.vector(coef_elnet)) %>% 
-  as.tibble() %>% 
-  rename(variable = 1, beta = 2) %>% 
+enet_beta <- 
+  cbind(variable = rownames(coef_elnet), beta = as.vector(coef_elnet)) %>% 
+  as_tibble() %>% 
   mutate(beta = as.numeric(beta)) %>% 
   filter(variable != "(Intercept)") %>% 
   mutate(method = "Elastic Net")
