@@ -245,6 +245,8 @@ plot_loadings %>%
                                "1,2,3,4,6,7,8-hxcdf" =  "lbxf08la",
                                "PCB 169" =  "lbxhxcla",
                                 "PCB 126" = "lbxpcbla")) %>% 
+    mutate(Loading = as.numeric(Loading)) %>%  
+  filter(!is.na(Loading)) %>% 
   ggplot(aes(x = Variable, y = Loading, fill = Group)) + geom_col() +
   facet_wrap(~ Factor) + theme_bw() + 
   theme(legend.position = "bottom", axis.text.x = element_text(angle = 90, hjust = 1),
@@ -252,6 +254,8 @@ plot_loadings %>%
   coord_flip() + geom_hline(yintercept = 0, size = 0.2)
 
 plot_loadings %>% 
+    mutate(Loading = as.numeric(Loading)) %>%  
+  filter(!is.na(Loading)) %>% 
   ggplot(aes(x = Factor, y = Loading, fill = Factor)) + geom_col(position = "dodge") +
   facet_wrap(~ Variable) + 
   theme_bw() + theme(legend.position = "none", axis.text.x = element_text(angle = 90, hjust = 1)) +
