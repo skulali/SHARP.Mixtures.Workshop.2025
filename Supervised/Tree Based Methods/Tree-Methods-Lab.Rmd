@@ -1,7 +1,6 @@
 ---
-title: "Tree Methods Lab 2023"
+title: "Tree Methods Lab 1: BART"
 author: "Ander Wilson"
-date: "7/26/2023"
 output: 
   html_document:
     toc: TRUE
@@ -20,7 +19,6 @@ knit_hooks$set(purl = hook_purl)
 
 In this lab we conduct an analysis of the NHANES data using two approaches:
 
-- Random forests with covariates regressed out prior to fitting the random forest model.
 - BART with covariates included in the tree model.
 
 We will fit the BART model in the lab. This only takes a minute or so. Some of the post-processing for partial dependence plots is slower. We will skip this. These steps were run in advance and output from these steps will be used in the lab.
@@ -41,8 +39,6 @@ library(ggplot2)
 library(tidyverse)
 #install.packages("BART")
 library(BART)
-#install.packages("randomForest")
-library(randomForest) 
 ```
 
 ### Lab-specific package
@@ -98,84 +94,11 @@ covariates <- with(nhanes, cbind(age_cent, male, bmi_cat3, edu_cat, race_cat,
 
 
 
-## Random Forests
 
 
-### Regress out covariates
+## Fit BART
 
-For the random forest analysis we will regress the covariates out prior to fitting the random forest model. This model can be fit by including the covariates in the random forest model instead. The BART analysis provides an example of this.
-
-```{r regress out covariates}
-# regress covariates out
-lnLTL_z_residuals <- lm(lnLTL_z~covariates)$residuals
-```
-
-
-### Fit random forest
-
-The key hyperparameters here are the number of trees (`mtree`) and the number of variables used in each tree (`mtry`). These hyperparameters could be selected with cross validation and/or sensitivity analyses can be used.
-
-```{r fit random forest}
-# fit the random forest model
-set.seed(1000)
-fit_rf <- randomForest(y=lnLTL_z_residuals,
-                       x=mixture,
-                       ntree=1000,
-                       mtry=6,   # number of variables used in each tree
-                       importance = TRUE)  # assess mixture component importance
-```
-
-### Prediction
-
-
-```{r predict with random forests}
-pred_rf <- predict(fit_rf)
-
-# view predicted vs observed
-plot(pred_rf~lnLTL_z_residuals, 
-     main="Predicted vs observed with random forest")
-```
-
-
-
-### Variable importance
-
-There are many measures of variable importance in trees and none is perfect. Two standard ones for random forests are:
-- Node Purity: how much splits on a variable improve model fit (reduce MSE for continuous outcomes)
-- Percent increase in MSE: a permutation approach that is normalized out of bag prediction error
-In both cases higher is more important.
-
-```{r variable importance with random forests quick plot}
-varImpPlot(fit_rf, main = "Random forest important variables", type=1)
-```
-
-
-```{r variable importance with random forests}
-# extract variable importance from the fit random forest model
-rf_var_imortance <- importance(fit_rf)
-rf_var_imortance
-```
-
-
-### Partial dependence plots
-
-The partial dependence plot shows the main effect of one exposure averaged over values of the other exposures. In this example we are only averaging over the other mixture covariates. We are not allowing for heterogeneity based on covariates because they were regressed out prior to estimating the random forest model. Note that there is no measure of uncertainty (no confidence intervals).
-
-```{r random forest partial dependence plot for Furan 1 }
-partialPlot(x = fit_rf, 
-            pred.data = mixture, 
-            x.var = "Furan1",
-            main = "Funan 1 partial dependence with random forest", 
-            xlab = "Exposure (z-score of log-transformed exposure)",
-            ylab = "Estimate (mean response)") 
-```
-
-See `rfutilities` package for confidence intervals for partial dependence plots with random forests.
-
-
-## BART
-
-### Fit BART
+We fit the BART model with default parameters: 200 trees, 2000 MCMC iteration discarded for burning, 2000 iterations retained for analysis.
 
 ```{r fit BART model}
 # fit the BART model
@@ -187,9 +110,10 @@ fit_bart <- gbart(x.train=cbind(mixture,covariates),
 
 load(paste0(here::here(), "/Supervised/Tree Based Methods/bart_fits_for_lab.rda"))
 ```
-### Fitted values
 
-Fitted values in BART are the estimated mean response at the observed values. Note that this is very different that the random forest plot because the covariates have not been regressed out of the outcome.
+## Fitted values
+
+Fitted values in BART are the estimated mean response at the observed values. Note that this is very different that the random forest plot because the covariates have not been regressed out of the outcome (see other lab document).
 
 ```{r fitted values}
 plot(fit_bart$yhat.train.mean~lnLTL_z, 
@@ -197,7 +121,7 @@ plot(fit_bart$yhat.train.mean~lnLTL_z,
 ```
 
 
-### Variable importance
+## Variable importance
 
 A simple measure of variable importance in BART is how many trees each variable is included in. We get an estimate of this with uncertainty. A variable being included in a lot of trees does not necessarily mean the variable has a large association or an association at all.
 
@@ -223,8 +147,123 @@ ggplot(varcount, aes(x=exposure, y=mean, ymin=lower, ymax=upper)) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
 
-### Partial dependence
 
+
+## Estimation a contrast in exposures
+
+We can estimate an IQR change in furan 1 when all other variables (exposures and covariates) are fixed at the sample means. 
+
+The first step it to setup the data.
+
+```{r BART IQR change at mean of other variables data prep}
+# find the means
+# note that we really should use mode or something other than mean for factor variables
+data_means <- colMeans(cbind(mixture,covariates))
+
+# Find the 25th and 75th quantiles of furan 1
+furan_qntls <- quantile(mixture[,"Furan1"], probs=c(0.25,0.75))
+
+# create a new dataset with two rows 
+# each row has the means for all variables except furan 1
+# each row has one of the furan 1 quantiles
+new_data <- rbind(data_means,data_means)
+new_data[,"Furan1"] <- furan_qntls
+
+# check data
+round(new_data,2)
+```
+
+Second, we predict with this new data.
+
+```{r predict outcomes at each level}
+posterior_furan1 <- predict(fit_bart, newdata = new_data)
+dim(posterior_furan1)
+colnames(posterior_furan1) <- c("q25","q75")
+matplot(posterior_furan1, type="l")
+```
+
+Third, we take the difference at each iteration. Each row in the posterior is one iteration.
+```{r take difference between levels at each iteration}
+posterior_furan1_difference <- posterior_furan1[,"q75"] - posterior_furan1[,"q25"]
+plot(posterior_furan1_difference, type="l")
+```
+
+
+Last, we summarize the posterior distribution of the difference.
+```{r summarize posterior of difference}
+mean(posterior_furan1_difference)
+quantile(posterior_furan1_difference, c(0.025,0.975))
+mean(posterior_furan1_difference>0)
+```
+
+## Estimation a contrast in one exposure averaged over all other predictors
+
+
+
+We can estimate an IQR change in furan 1 averaged over all other covaraites
+
+The first step it to setup the data.This time we do it separately for each level of furan 1. 
+We also use the full dataset for prediction not just the means.
+
+```{r BART IQR change at averaged over other variables data prep}
+# create two replicates of the data
+data_q25 <- cbind(mixture,covariates)
+data_q75 <- cbind(mixture,covariates)
+
+# Find the 25th and 75th quantiles of furan 1
+furan_qntls <- quantile(mixture[,"Furan1"], probs=c(0.25,0.75))
+
+# for each dataset assign all individuals the specified level of furan 1
+data_q25[,"Furan1"] <- furan_qntls[1]
+data_q75[,"Furan1"] <- furan_qntls[2]
+
+# check data
+round(head(data_q25),2)
+round(head(data_q75),2)
+```
+
+Second, we predict with each new dataset.
+
+```{r predict outcomes for both new datasets}
+posterior_furan1_q25 <- predict(fit_bart, newdata = data_q25)
+posterior_furan1_q75 <- predict(fit_bart, newdata = data_q75)
+dim(posterior_furan1_q25)
+```
+
+Third, we take the average of all 1003 observations for all datasets at each iteration. Each row in the posterior is one iteration.
+```{r take the mean of each response at each iteration separately for the two datasets}
+posterior_furan1_q25 <- rowMeans(posterior_furan1_q25)
+posterior_furan1_q75 <- rowMeans(posterior_furan1_q75)
+posterior_furan1_means <- cbind(posterior_furan1_q25,posterior_furan1_q75)
+dim(posterior_furan1_means)
+colnames(posterior_furan1_means) <- c("q25","q75")
+matplot(posterior_furan1_means, type="l")
+```
+
+
+
+Then we take the difference at each iteration. Each row in the posterior is one iteration.
+```{r take difference of the means at each level of furan 1}
+posterior_furan1_means_difference <- posterior_furan1_means[,"q75"] - posterior_furan1_means[,"q25"]
+plot(posterior_furan1_means_difference, type="l")
+```
+
+
+Last, we summarize the posterior distribution of the difference.
+```{r summarize posterior of difference the same as before}
+mean(posterior_furan1_means_difference)
+quantile(posterior_furan1_means_difference, c(0.025,0.975))
+mean(posterior_furan1_means_difference>0)
+```
+
+
+
+
+## Partial dependence functions
+
+To get partial dependence functions we can replicate the above procedure for estimates averaged over the other variables.
+This is done several times, For example, we may do this at every 5th quantile of a variable and then plot the results.
+The code below does this over a grid of L values, which can be specified.
 The partial dependence functions with BART include uncertainty.
 
 ```{r BART partial dependence for Furan 1, eval=FALSE}
@@ -263,13 +302,13 @@ mutate(exposure = fct_recode(exposure, "PCB 74" = "PCB74",
                                 "PCB 180" = "PCB180",
                                 "PCB 187" = "PCB187",
                                 "PCB 194" = "PCB194",
-                                "1,2,3,6,7,8-hxcdd" = "Dioxin1",
-                                "1,2,3,4,6,7,8-hpcdd" = "Dioxin2",
-                               "1,2,3,4,6,7,8,9-ocdd" =  "Dioxin3",
-                               "2,3,4,7,8-pncdf" =  "Furan1",
-                               "1,2,3,4,7,8-hxcdf" =  "Furan2",
-                               "1,2,3,6,7,8-hxcdf" =  "Furan3",
-                               "1,2,3,4,6,7,8-hxcdf" =  "Furan4",
+                                "Dioxin 1\n1,2,3,6,7,8-hxcdd" = "Dioxin1",
+                                "Dioxin 2\n1,2,3,4,6,7,8-hpcdd" = "Dioxin2",
+                               "Dioxin 3\n1,2,3,4,6,7,8,9-ocdd" =  "Dioxin3",
+                               "Furan 1\n2,3,4,7,8-pncdf" =  "Furan1",
+                               "Furan 2\n1,2,3,4,7,8-hxcdf" =  "Furan2",
+                               "Furan 3\n1,2,3,6,7,8-hxcdf" =  "Furan3",
+                               "Furan 4\n1,2,3,4,6,7,8-hxcdf" =  "Furan4",
                                "PCB 169" =  "PCB169",
                                 "PCB 126" = "PCB126")) %>% 
   ggplot(aes(x=x, y=mean, ymin=lower, ymax=upper)) +
@@ -283,7 +322,7 @@ mutate(exposure = fct_recode(exposure, "PCB 74" = "PCB74",
 plt
 ```
 
-### 2-way partial dependence
+## 2-way partial dependence functions
 
 One form of a 2-way partial dependence plot shows the partial dependence of one exposure at different percentiles of another exposure. In this case, the partial dependence plot for PCB169 is shown at five percentiles of Furan 1. There is no evidence of interaction so the lines are exactly on top of each other.
 
@@ -310,7 +349,7 @@ ggplot(pd_2way, aes(x=x, y=mean,
 ```
 
 
-### Total mixture effect
+## Total mixture effect
 
 We can estimate the total mixture effect in the same way that is typical with BKMR. This analysis estimates the mean response when all covariates are set to a specific quantile. In this case each quantile from 0.2 to 0.8 in steps of 0.05. 
 
@@ -332,7 +371,7 @@ ggplot(totalmix, aes(x=quantile, y=mean, ymin=lower, ymax=upper)) +
 
 
 
-### Subgroup specific effects
+## Subgroup specific effects
 
 BART naturally accounts for heterogeneity. Because we included all exposures and covariates in the model there can be interactions both among exposures and among exposures and covaraites. There are two approaches to estimate subgroup specific effects
 

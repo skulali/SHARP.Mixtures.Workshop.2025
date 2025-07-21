@@ -38,7 +38,7 @@ mixture <- with(nhanes, cbind(LBX074LA, LBX099LA, LBX118LA, LBX138LA, LBX153LA, 
 mixture   <- apply(mixture, 2, log)
 mixture <- scale(mixture)
 colnames(mixture) <- c(paste0("PCB",c(74, 99, 118, 138, 153, 170, 180, 187, 194, 169, 126)), 
-                           paste0("Dioxin",1:3), paste0("Furan",1:4)) 
+                       paste0("Dioxin",1:3), paste0("Furan",1:4)) 
 exposure_names <- colnames(mixture)
 
 ## ----format covariates--------------------------------------------------------
@@ -138,24 +138,24 @@ ggplot(funan1_pd, aes(x=x, y=mean, ymin=lower, ymax=upper)) +
 
 ## ----BART partial dependence for all components visualization-----------------
 plt <- all_pd %>%
-mutate(exposure = fct_recode(exposure, "PCB 74" = "PCB74",
-                                "PCB 99" = "PCB99",
-                                "PCB 118" = "PCB118",
-                                "PCB 138" = "PCB138",
-                                "PCB 153" = "PCB153",
-                                "PCB 170" = "PCB170",
-                                "PCB 180" = "PCB180",
-                                "PCB 187" = "PCB187",
-                                "PCB 194" = "PCB194",
-                                "1,2,3,6,7,8-hxcdd" = "Dioxin1",
-                                "1,2,3,4,6,7,8-hpcdd" = "Dioxin2",
+  mutate(exposure = fct_recode(exposure, "PCB 74" = "PCB74",
+                               "PCB 99" = "PCB99",
+                               "PCB 118" = "PCB118",
+                               "PCB 138" = "PCB138",
+                               "PCB 153" = "PCB153",
+                               "PCB 170" = "PCB170",
+                               "PCB 180" = "PCB180",
+                               "PCB 187" = "PCB187",
+                               "PCB 194" = "PCB194",
+                               "1,2,3,6,7,8-hxcdd" = "Dioxin1",
+                               "1,2,3,4,6,7,8-hpcdd" = "Dioxin2",
                                "1,2,3,4,6,7,8,9-ocdd" =  "Dioxin3",
                                "2,3,4,7,8-pncdf" =  "Furan1",
                                "1,2,3,4,7,8-hxcdf" =  "Furan2",
                                "1,2,3,6,7,8-hxcdf" =  "Furan3",
                                "1,2,3,4,6,7,8-hxcdf" =  "Furan4",
                                "PCB 169" =  "PCB169",
-                                "PCB 126" = "PCB126")) %>% 
+                               "PCB 126" = "PCB126")) %>% 
   ggplot(aes(x=x, y=mean, ymin=lower, ymax=upper)) +
   facet_wrap(~exposure) +
   geom_ribbon(fill="grey70") +
