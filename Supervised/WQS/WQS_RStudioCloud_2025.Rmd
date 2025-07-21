@@ -79,11 +79,11 @@ summary(results1$fit)
 # blood data: LBXWBCSI LBXLYPCT LBXMOPCT LBXEOPCT LBXBAPCT LBXNEPCT
 # demographics: age_cent age_sq race_cat bmi_cat3 ln_lbxcot edu_cat male
 # positive direction
-# result2 = gwqs(log_TELOMEAN ~ wqs+LBXWBCSI + LBXLYPCT + LBXMOPCT + LBXEOPCT + LBXBAPCT + LBXNEPCT + age_cent + age_sq + 
-#                  race_cat + bmi_cat3 + ln_lbxcot + edu_cat + male, 
-#                mix_name = mixture, data = dataset, q = 10, 
-#                validation = 0.6, b = 100, b1_pos = TRUE, b_constr = TRUE, family = "gaussian", 
-#                seed = 123)
+ # result2 = gwqs(log_TELOMEAN ~ wqs+LBXWBCSI + LBXLYPCT + LBXMOPCT + LBXEOPCT + LBXBAPCT + LBXNEPCT + age_cent + age_sq + 
+ #                  race_cat + bmi_cat3 + ln_lbxcot + edu_cat + male, 
+ #                mix_name = mixture, data = dataset, q = 10, 
+ #                validation = 0.6, b = 100, b1_pos = TRUE, b_constr = TRUE, family = "gaussian", 
+ #                seed = 123)
 
 #save(result2, file="Supervised/WQS/saved_model/result2.RData") 
 
@@ -105,9 +105,9 @@ sum(result2$bres$b1 < 0)
 # result3 = gwqs(log_TELOMEAN ~ wqs+LBXWBCSI + LBXLYPCT + LBXMOPCT + LBXEOPCT + LBXBAPCT + LBXNEPCT + age_cent + age_sq + 
 #                  race_cat + bmi_cat3 + ln_lbxcot + edu_cat + male, 
 #                mix_name = mixture, 
-#                data = dataset, q = 10, 
+#                 data = dataset, q = 10, 
 #                validation = 0.6,  b = 100, b1_pos = FALSE, b_constr = TRUE, family = "gaussian", 
-#                seed = 123)
+#                 seed = 123)
 
 #save(result3, file="Supervised/WQS/saved_model/result3.RData") 
 
@@ -125,10 +125,10 @@ sum(result3$bres$b1 < 0)
 #compare to random subset WQS
 # result4 = gwqs(log_TELOMEAN ~ wqs +
 #                  LBXWBCSI + LBXLYPCT + LBXMOPCT + LBXEOPCT + LBXBAPCT + LBXNEPCT + age_cent + age_sq + 
-#                  race_cat + bmi_cat3 + ln_lbxcot + edu_cat + male, 
+#                   race_cat + bmi_cat3 + ln_lbxcot + edu_cat + male, 
 #                mix_name = mixture, data = dataset, q = 10, 
-#                validation = 0.6,  b = 100, b1_pos = TRUE, b_constr = TRUE, family = "gaussian", 
-#                seed = 123, rs=TRUE, n_var=5) #3 for set of 9 and 5 for set of 18
+#                 validation = 0.6,  b = 100, b1_pos = TRUE, b_constr = TRUE, family = "gaussian", 
+#                 seed = 123, rs=TRUE, n_var=5) #3 for set of 9 and 5 for set of 18
 
 #save(result4, file="Supervised/WQS/saved_model/result4.RData") 
 
@@ -147,10 +147,10 @@ sum(result4$bres$b1 > 0)
 ```{r, interaction}
 # WQS with interaction
 # result2int = gwqs(log_TELOMEAN ~ wqs*male +
-#                  LBXWBCSI + LBXLYPCT + LBXMOPCT + LBXEOPCT + LBXBAPCT + LBXNEPCT + age_cent + age_sq + 
+#                  LBXWBCSI + LBXLYPCT + LBXMOPCT + LBXEOPCT + LBXBAPCT + LBXNEPCT + age_cent + age_sq +
 #                  race_cat + bmi_cat3 + ln_lbxcot + edu_cat + male, bint_cat_pos = TRUE,
-#                mix_name = mixture, data = dataset, q = 10, 
-#                validation = 0.6,  b = 100, b1_pos = TRUE, b_constr = TRUE, family = "gaussian", 
+#                mix_name = mixture, data = dataset, q = 10,
+#                validation = 0.6,  b = 100, b1_pos = TRUE, b_constr = TRUE, family = "gaussian",
 #                seed = 123)
 
 #save(result2int, file="Supervised/WQS/saved_model/result2int.RData") 
@@ -180,10 +180,10 @@ is.factor(dataset$male)
 is.factor(dataset$sex) 
 
 # result5 = gwqs(log_TELOMEAN ~ wqs +
-#                  LBXWBCSI + LBXLYPCT + LBXMOPCT + LBXEOPCT + LBXBAPCT + LBXNEPCT + age_cent + age_sq + 
-#                 race_cat + bmi_cat3 + ln_lbxcot + edu_cat + male, 
-#               stratified="sex", mix_name = mixture, data = dataset, q = 10, 
-#               validation = 0.6,  b = 100, b1_pos = TRUE, b_constr = TRUE, family = "gaussian", 
+#                  LBXWBCSI + LBXLYPCT + LBXMOPCT + LBXEOPCT + LBXBAPCT + LBXNEPCT + age_cent + age_sq +
+#                 race_cat + bmi_cat3 + ln_lbxcot + edu_cat + male,
+#               stratified="sex", mix_name = mixture, data = dataset, q = 10,
+#               validation = 0.6,  b = 100, b1_pos = TRUE, b_constr = TRUE, family = "gaussian",
 #               seed = 123, plan_strategy = "multisession")
 
 #save(result5, file="Supervised/WQS/saved_model/result5.RData") 
@@ -201,10 +201,10 @@ gwqs_fitted_vs_resid(result5)
 # run the wqs model using the stratified variables in the mixtures with interaction
 #dataset$sex = factor(dataset$male) 
 # result6 = gwqs(log_TELOMEAN ~ wqs*sex +
-#                 LBXWBCSI + LBXLYPCT + LBXMOPCT + LBXEOPCT + LBXBAPCT + LBXNEPCT + age_cent + age_sq + 
-#                 race_cat + bmi_cat3 + ln_lbxcot + edu_cat, 
-#               stratified="sex", mix_name = mixture, data = dataset, q = 10, 
-#               validation = 0.6,  b = 100, b1_pos = TRUE, b_constr = TRUE, bint_cat_pos=TRUE, family = "gaussian", 
+#                 LBXWBCSI + LBXLYPCT + LBXMOPCT + LBXEOPCT + LBXBAPCT + LBXNEPCT + age_cent + age_sq +
+#                 race_cat + bmi_cat3 + ln_lbxcot + edu_cat,
+#               stratified="sex", mix_name = mixture, data = dataset, q = 10,
+#               validation = 0.6,  b = 100, b1_pos = TRUE, b_constr = TRUE, bint_cat_pos=TRUE, family = "gaussian",
 #               seed = 123, plan_strategy = "multisession")
 
 #save(result6, file="Supervised/WQS/saved_model/result6.RData") 
@@ -223,11 +223,11 @@ gwqs_scatterplot(result6)
 ################################ takes FOREVER ##########################
 #repeated holdout WQS
 # positive direction
-#result6rh = gwqs(log_TELOMEAN ~ wqs*sex +
-#                 LBXWBCSI + LBXLYPCT + LBXMOPCT + LBXEOPCT + LBXBAPCT + LBXNEPCT + age_cent + age_sq + 
-#                 race_cat + bmi_cat3 + ln_lbxcot + edu_cat , 
-#                stratified="sex", 
-#                 mix_name = mixture, data = dataset, q = 10, validation = 0.6, b = 50, 
+# result6rh = gwqs(log_TELOMEAN ~ wqs*sex +
+#                 LBXWBCSI + LBXLYPCT + LBXMOPCT + LBXEOPCT + LBXBAPCT + LBXNEPCT + age_cent + age_sq +
+#                 race_cat + bmi_cat3 + ln_lbxcot + edu_cat ,
+#                stratified="sex",
+#                 mix_name = mixture, data = dataset, q = 10, validation = 0.6, b = 50,
 #               b1_pos = TRUE, b_constr = TRUE, bint_cat_pos = TRUE,
 #               family = "gaussian", seed = 123, rh=10)
 
