@@ -34,6 +34,7 @@ study_pop = read_csv(here::here("Data/studypop.csv")) %>%
          edu_cat = as.factor(edu_cat),
          race_cat = as.factor(race_cat),
          male = as.factor(male)) 
+
 ```
 
 Quick data descriptions; because of the length of the output, we don't execute this command here, but encourage you to!
@@ -301,7 +302,7 @@ We can compare the results of the lasso fit to an OLS fit using the selected var
 ```{r}
 lasso_beta = lasso_beta %>%
   filter(beta != 0) %>% 
-  select(term = variable, lasso = beta)
+  dplyr::select(term = variable, lasso = beta)
 
 lm_from_lasso <- lm(log_telomean ~ lbx099la + lbx118la + lbxf03la +lbxpcbla +
      lbxwbcsi + lbxlypct + lbxmopct + lbxnepct + lbxeopct + lbxbapct +
@@ -310,7 +311,7 @@ lm_from_lasso <- lm(log_telomean ~ lbx099la + lbx118la + lbxf03la +lbxpcbla +
 ols_beta =
   lm_from_lasso %>% 
   broom::tidy() %>% 
-  select(term, ols = estimate)
+  dplyr::select(term, ols = estimate)
 
 ols_v_lasso = left_join(lasso_beta, ols_beta)
 ols_v_lasso
