@@ -35,7 +35,7 @@ library(bindrcpp)
 ## this drops 327 individuals, but BKMR does not handle missing data
 nhanes <- na.omit(read.csv("Data/studypop.csv"))
 
-## center/scale continous covariates and create indicators for categorical covariates
+## center/scale continuous covariates and create indicators for categorical covariates
 nhanes$age_z         <- scale(nhanes$age_cent)         ## center and scale age
 nhanes$agez_sq       <- nhanes$age_z^2                 ## square this age variable
 nhanes$bmicat2       <- as.numeric(nhanes$bmi_cat3==2) ## 25 <= BMI < 30
@@ -101,9 +101,9 @@ set.seed(1000)
 ## For this lab we are only going to generate 100 MCMC samples to get a sense
 ##   for what the program outputs.  
 
-  
+
 temp <-  kmbayes(y=lnLTL_z, Z=lnmixture_z, X=covariates, iter=100, verbose=TRUE, varsel=TRUE, 
-                             groups=c(rep(1,times=2), 2, rep(1,times=6), rep(3,times=2), rep(2,times=7)), knots=knots50)
+                 groups=c(rep(1,times=2), 2, rep(1,times=6), rep(3,times=2), rep(2,times=7)), knots=knots50)
 
 ## The following statement saved the model fits using 100,000 MCMC samples. We won't save
 ##    our fit based on 100 samples. Rather we will load in the results from 100,000. 
