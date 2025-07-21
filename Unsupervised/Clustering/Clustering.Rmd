@@ -35,6 +35,11 @@ library(dendextend)
 library(pryr)
 #install.packages("reshape2")
 library(reshape2)
+#install.packages("here") 
+library(here)
+install.packages("colorspace")
+library(colorspace)
+
 
 #This turns off scientific notation
 options(scipen = 999)
@@ -593,7 +598,7 @@ table(hc_health_3$hc.clusters.3)
 
 Visualization of Hierarchical clustering N = 3 
 
-Means of the pollutants in each cluster compare to the mean of the chemicals in the entired population to identified in which clusters individuals 
+Means of the pollutants in each cluster compare to the mean of the chemicals in the entire population to identified in which clusters individuals 
 are located based on exposure. We see that in cluster 1, we find individuals that have means of chemical higher than the chemical mean in the entire population. In the case of cluster 2, most of the observations within this cluster very similar chemical concentrations to the mean of the chemical in the entire popullation. In the third cluster, we see that most of the individuals within this cluster have chemical means below the chemical means of the entire population.
 
 ```{r}
