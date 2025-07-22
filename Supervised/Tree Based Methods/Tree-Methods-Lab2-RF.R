@@ -31,7 +31,7 @@ mixture <- with(nhanes, cbind(LBX074LA, LBX099LA, LBX118LA, LBX138LA, LBX153LA, 
 mixture   <- apply(mixture, 2, log)
 mixture <- scale(mixture)
 colnames(mixture) <- c(paste0("PCB",c(74, 99, 118, 138, 153, 170, 180, 187, 194, 169, 126)), 
-                       paste0("Dioxin",1:3), paste0("Furan",1:4)) 
+                           paste0("Dioxin",1:3), paste0("Furan",1:4)) 
 exposure_names <- colnames(mixture)
 
 ## ----format covariates--------------------------------------------------------

@@ -151,9 +151,13 @@ ggplot(varcount, aes(x=exposure, y=mean, ymin=lower, ymax=upper)) +
 
 ## Estimation a contrast in exposures
 
-We can estimate an IQR change in furan 1 when all other variables (exposures and covariates) are fixed at the sample means. 
+We can estimate an IQR change in furan 1 when all other variables (exposures and covariates) are fixed at the sample means. The general idea is to create a data frame with two observations. Each observation represents one potential exposure profile. In our case, these exposure profiles will have all variables (exposures and covariates) set to their means, with the exception on furan 1. For furan 1, one observations will have exposure at the 75th percentile and one at the 25th percentile. We will compare the estimated mean response for observations with these two exposure profiles. This can be generalized to any exposure (or covariate) profiles. There is nothin special about setting these to the mean.
 
-The first step it to setup the data.
+The first step is to setup the data. The data should have:
+  - two rows, one for each quantile of furan 1 we are considering, 
+  - one column for each variable in the training data,
+  - all variable set to the mean with the exception of furan 1, and
+  - furan 1 set to the quantiles we which to compare (25th in one row and 75th in the other row).
 
 ```{r BART IQR change at mean of other variables data prep}
 # find the means
@@ -166,33 +170,47 @@ furan_qntls <- quantile(mixture[,"Furan1"], probs=c(0.25,0.75))
 # create a new dataset with two rows 
 # each row has the means for all variables except furan 1
 # each row has one of the furan 1 quantiles
-new_data <- rbind(data_means,data_means)
-new_data[,"Furan1"] <- furan_qntls
+new_data <- rbind(data_means,data_means) # everything set to mean
+new_data[,"Furan1"] <- furan_qntls # replace furan 1 with quantiles of interest
 
 # check data
 round(new_data,2)
 ```
 
-Second, we predict with this new data.
+Second, we predict with this new data. This is done with the built in predict function from the `bart` package.
 
 ```{r predict outcomes at each level}
+# predict
 posterior_furan1 <- predict(fit_bart, newdata = new_data)
 dim(posterior_furan1)
+
+# label columns so we remember which column is for which quantile
 colnames(posterior_furan1) <- c("q25","q75")
+```
+
+We now have a data frame with one row for each MCMC iteration (should be 2000) and one column for each of the exposure values we are comparing. We can check this by making a trace plot.
+
+```{r trace plot}
+dim(posterior_furan1)
 matplot(posterior_furan1, type="l")
 ```
 
-Third, we take the difference at each iteration. Each row in the posterior is one iteration.
+Third, we take the difference at each iteration. Each row in the posterior is one MCMC iteration. We can subtract the prediction at the 75th quantile from the prediction at the 25th quantile in each row. This will give us a vector with one number for each MCMC iteration. This is the posterior sample of the difference in response between these exposure scenarios. 
+
 ```{r take difference between levels at each iteration}
 posterior_furan1_difference <- posterior_furan1[,"q75"] - posterior_furan1[,"q25"]
+length(posterior_furan1_difference)
 plot(posterior_furan1_difference, type="l")
 ```
 
 
-Last, we summarize the posterior distribution of the difference.
+Last, we summarize the posterior distribution of the difference. We can summarize this in any way we want.
 ```{r summarize posterior of difference}
+# posterior mean difference is the point estimate or expected difference in response between these two exposure scenarios.
 mean(posterior_furan1_difference)
+# The 0.025 and 0.975 quantiles are the bounds of the 0.95 credible interval. This is similar to a confidence interval, but has slightly different interpretation.
 quantile(posterior_furan1_difference, c(0.025,0.975))
+# the proportion of samples greater than 0 is interpreted as the probability that the mean response at the 0.75 quantile is greater than at the 0.25 quantile. It is somewhat like a p-value for a one-sided test.
 mean(posterior_furan1_difference>0)
 ```
 
@@ -200,10 +218,9 @@ mean(posterior_furan1_difference>0)
 
 
 
-We can estimate an IQR change in furan 1 averaged over all other covaraites
+We can estimate an IQR change in furan 1 averaged over all other covaraites. This is similar to the last example, but has a few extra steps. 
 
-The first step it to setup the data.This time we do it separately for each level of furan 1. 
-We also use the full dataset for prediction not just the means.
+Like before, we start by setting up the data. This time we do it separately for each level of furan 1. We also use the full dataset for prediction not just the means. The first step is to create two copies of the dataset, one for each quantile. For each dataset we will set furan 1 to either the 25th or 75th percentiles. All other variables remain the same as in the exposure dataset.
 
 ```{r BART IQR change at averaged over other variables data prep}
 # create two replicates of the data
@@ -230,26 +247,32 @@ posterior_furan1_q75 <- predict(fit_bart, newdata = data_q75)
 dim(posterior_furan1_q25)
 ```
 
-Third, we take the average of all 1003 observations for all datasets at each iteration. Each row in the posterior is one iteration.
+Third, we take the average of all 1003 observations for all datasets at each iteration. Each row in the posterior is one iteration and we want to keep these iterations linked throughout. This is done separately for each of our replicate datasets. The result is a vector with one observation for each MCMC iteration. We can interpret this as the posterior sample (MCMC sample) of the mean response in our sample if everyone had furan 1 fixed at the specified quantile and their other variables were as observed in the data. This naturally accounts for effect heterogeneity.
+
 ```{r take the mean of each response at each iteration separately for the two datasets}
+# row mean for each quantile
 posterior_furan1_q25 <- rowMeans(posterior_furan1_q25)
 posterior_furan1_q75 <- rowMeans(posterior_furan1_q75)
+
+# combine those results into a data frame with two columns
 posterior_furan1_means <- cbind(posterior_furan1_q25,posterior_furan1_q75)
 dim(posterior_furan1_means)
 colnames(posterior_furan1_means) <- c("q25","q75")
+
+# visualize with a trace plot
 matplot(posterior_furan1_means, type="l")
 ```
 
 
 
-Then we take the difference at each iteration. Each row in the posterior is one iteration.
+Then we take the difference at each iteration, just like before. Each row in the posterior is one iteration.
 ```{r take difference of the means at each level of furan 1}
 posterior_furan1_means_difference <- posterior_furan1_means[,"q75"] - posterior_furan1_means[,"q25"]
 plot(posterior_furan1_means_difference, type="l")
 ```
 
 
-Last, we summarize the posterior distribution of the difference.
+Last, we summarize the posterior distribution of the difference, just like before.
 ```{r summarize posterior of difference the same as before}
 mean(posterior_furan1_means_difference)
 quantile(posterior_furan1_means_difference, c(0.025,0.975))
@@ -373,9 +396,12 @@ ggplot(totalmix, aes(x=quantile, y=mean, ymin=lower, ymax=upper)) +
 
 ## Subgroup specific effects
 
-BART naturally accounts for heterogeneity. Because we included all exposures and covariates in the model there can be interactions both among exposures and among exposures and covaraites. There are two approaches to estimate subgroup specific effects
-
-First, we can estimate the exposure-response relationship in different subgroups. Below we estimate the partial dependence function for Furan 1 among males and females. This is from the same model fit as before. We are simply using the posterior sample to estimate a different estimand.
+BART naturally accounts for heterogeneity. Because we included all exposures and covariates into the model there can be interactions both among exposures and among exposures and covariates. There are two approaches to estimate subgroup specific effects
+  1.  Estimate the exposure effects with each subgroup. Using this approach, the effect in each group is conditional of the distribution of covariates and co-exposures observed in each group, which may be different among groups.
+  2.  Use a g-computation-type approach to balance covariates and co-exposures across the groups.
+  
+  
+First, we can estimate the exposure-response relationship in different subgroups (approach 1 above). Below we estimate the partial dependence function for Furan 1 among males and females. This is from the same model fit as before. We are simply using the posterior sample to estimate a different estimand.
 
 The first step is to subset the data based on the subgroups of interest.
 
@@ -430,7 +456,7 @@ ggplot(funan1_pd_mf_subset, aes(x=x, y=mean, ymin=lower, ymax=upper)) +
 ```
 
 
-An alternative approach is to use the full dataset but set all individuals to male or female. This eliminates differences in the distribution of covariates between the two groups (e.g. differences in age, BMI, exposures, etc.).
+An alternative approach is to use the full dataset but set all individuals to male or female. This eliminates differences in the distribution of covariates between the two groups (e.g. differences in age, BMI, exposures, etc.). This is very similar to the approach used above to average over levels of co-exposures and covariates.
 
 First, create the combined datasets.
 

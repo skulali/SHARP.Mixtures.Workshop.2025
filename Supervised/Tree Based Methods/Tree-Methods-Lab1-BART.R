@@ -87,25 +87,35 @@ furan_qntls <- quantile(mixture[,"Furan1"], probs=c(0.25,0.75))
 # create a new dataset with two rows 
 # each row has the means for all variables except furan 1
 # each row has one of the furan 1 quantiles
-new_data <- rbind(data_means,data_means)
-new_data[,"Furan1"] <- furan_qntls
+new_data <- rbind(data_means,data_means) # everything set to mean
+new_data[,"Furan1"] <- furan_qntls # replace furan 1 with quantiles of interest
 
 # check data
 round(new_data,2)
 
 ## ----predict outcomes at each level-------------------------------------------
+# predict
 posterior_furan1 <- predict(fit_bart, newdata = new_data)
 dim(posterior_furan1)
+
+# label columns so we remember which column is for which quantile
 colnames(posterior_furan1) <- c("q25","q75")
+
+## ----trace plot---------------------------------------------------------------
+dim(posterior_furan1)
 matplot(posterior_furan1, type="l")
 
 ## ----take difference between levels at each iteration-------------------------
 posterior_furan1_difference <- posterior_furan1[,"q75"] - posterior_furan1[,"q25"]
+length(posterior_furan1_difference)
 plot(posterior_furan1_difference, type="l")
 
 ## ----summarize posterior of difference----------------------------------------
+# posterior mean difference is the point estimate or expected difference in response between these two exposure scenarios.
 mean(posterior_furan1_difference)
+# The 0.025 and 0.975 quantiles are the bounds of the 0.95 credible interval. This is similar to a confidence interval, but has slightly different interpretation.
 quantile(posterior_furan1_difference, c(0.025,0.975))
+# the proportion of samples greater than 0 is interpreted as the probability that the mean response at the 0.75 quantile is greater than at the 0.25 quantile. It is somewhat like a p-value for a one-sided test.
 mean(posterior_furan1_difference>0)
 
 ## ----BART IQR change at averaged over other variables data prep---------------
@@ -130,11 +140,16 @@ posterior_furan1_q75 <- predict(fit_bart, newdata = data_q75)
 dim(posterior_furan1_q25)
 
 ## ----take the mean of each response at each iteration separately for the two datasets----
+# row mean for each quantile
 posterior_furan1_q25 <- rowMeans(posterior_furan1_q25)
 posterior_furan1_q75 <- rowMeans(posterior_furan1_q75)
+
+# combine those results into a data frame with two columns
 posterior_furan1_means <- cbind(posterior_furan1_q25,posterior_furan1_q75)
 dim(posterior_furan1_means)
 colnames(posterior_furan1_means) <- c("q25","q75")
+
+# visualize with a trace plot
 matplot(posterior_furan1_means, type="l")
 
 ## ----take difference of the means at each level of furan 1--------------------
@@ -147,11 +162,11 @@ quantile(posterior_furan1_means_difference, c(0.025,0.975))
 mean(posterior_furan1_means_difference>0)
 
 ## ----BART partial dependence for Furan 1, eval=FALSE--------------------------
-#  # partial dependence of BART
-#  funan1_pd <- partialdependence1(fit_bart,
-#                                  data=cbind(mixture,covariates),
-#                                  exposures = "Furan1",
-#                                  L=50)
+# # partial dependence of BART
+# funan1_pd <- partialdependence1(fit_bart,
+#                                 data=cbind(mixture,covariates),
+#                                 exposures = "Furan1",
+#                                 L=50)
 
 ## ----BART partial dependence for Furan 1 visualization------------------------
 ggplot(funan1_pd, aes(x=x, y=mean, ymin=lower, ymax=upper)) + 
@@ -163,10 +178,10 @@ ggplot(funan1_pd, aes(x=x, y=mean, ymin=lower, ymax=upper)) +
   ylab("Estimate (mean response)") 
 
 ## ----BART partial dependence for all components, echo=FALSE, eval=FALSE-------
-#  all_pd <- partialdependence1(fit_bart,
-#                              data=cbind(mixture,covariates),
-#                              exposures = exposure_names,
-#                              L=50)
+# all_pd <- partialdependence1(fit_bart,
+#                             data=cbind(mixture,covariates),
+#                             exposures = exposure_names,
+#                             L=50)
 
 ## ----BART partial dependence for all components visualization-----------------
 plt <- all_pd %>%
@@ -199,12 +214,12 @@ mutate(exposure = fct_recode(exposure, "PCB 74" = "PCB74",
 plt
 
 ## ----two way partial dependence with BART, eval=FALSE-------------------------
-#  pd_2way <- partialdependence2(fit_bart,
-#                                  data=cbind(mixture,covariates),
-#                                  var = "PCB169",
-#                                var2 = "Furan1",
-#                                qtls = c(0.1,0.25,0.5,0.75,0.9),
-#                                  L=20)
+# pd_2way <- partialdependence2(fit_bart,
+#                                 data=cbind(mixture,covariates),
+#                                 var = "PCB169",
+#                               var2 = "Furan1",
+#                               qtls = c(0.1,0.25,0.5,0.75,0.9),
+#                                 L=20)
 
 ## ----two way partial dependence with BART visualize---------------------------
 pd_2way$qtl <- as.factor(pd_2way$qtl)
@@ -218,10 +233,10 @@ ggplot(pd_2way, aes(x=x, y=mean,
   ylab("Estimate (mean response)") 
 
 ## ----BART total mixture effect, eval=FALSE------------------------------------
-#  totalmix <- totalmixtureeffect(fit_bart,
-#                                 data=cbind(mixture,covariates),
-#                                 exposures = exposure_names,
-#                                 qtls = seq(0.2,0.8,0.05))
+# totalmix <- totalmixtureeffect(fit_bart,
+#                                data=cbind(mixture,covariates),
+#                                exposures = exposure_names,
+#                                qtls = seq(0.2,0.8,0.05))
 
 ## ----BART total mixture effect visualization----------------------------------
 ggplot(totalmix, aes(x=quantile, y=mean, ymin=lower, ymax=upper)) + 
@@ -246,17 +261,17 @@ dim(female_data_subset)
 table(female_data_subset[,"male"])
 
 ## ----estimate partial dependence for each subset, eval=FALSE------------------
-#  # estimate among males with male subset of data
-#  funan1_pd_male_subset <- partialdependence1(fit_bart,
-#                                   data=male_data_subset,  # subset of data provided
-#                                   exposures = "Furan1",
-#                                   L=50)
-#  
-#  # estimate among females with female subset of data
-#  funan1_pd_female_subset <- partialdependence1(fit_bart,
-#                                       data=female_data_subset,   # subset of data provided
-#                                       exposures = "Furan1",
-#                                       L=50)
+# # estimate among males with male subset of data
+# funan1_pd_male_subset <- partialdependence1(fit_bart,
+#                                  data=male_data_subset,  # subset of data provided
+#                                  exposures = "Furan1",
+#                                  L=50)
+# 
+# # estimate among females with female subset of data
+# funan1_pd_female_subset <- partialdependence1(fit_bart,
+#                                      data=female_data_subset,   # subset of data provided
+#                                      exposures = "Furan1",
+#                                      L=50)
 
 ## ----graph subset specific partial dependence functions-----------------------
 funan1_pd_male_subset$subgroup <- "Male"
@@ -291,15 +306,15 @@ dim(combind_data_allfemale)
 table(combind_data_allfemale[,"male"])
 
 ## ----estimate partial dependence functions on each dataset, eval=FALSE--------
-#  funan1_pd_male_all <- partialdependence1(fit_bart,
-#                                       data=combind_data_allmale,
-#                                       exposures = "Furan1",
-#                                       L=50)
-#  
-#  funan1_pd_female_all <- partialdependence1(fit_bart,
-#                                         data=combind_data_allfemale,
-#                                         exposures = "Furan1",
-#                                         L=50)
+# funan1_pd_male_all <- partialdependence1(fit_bart,
+#                                      data=combind_data_allmale,
+#                                      exposures = "Furan1",
+#                                      L=50)
+# 
+# funan1_pd_female_all <- partialdependence1(fit_bart,
+#                                        data=combind_data_allfemale,
+#                                        exposures = "Furan1",
+#                                        L=50)
 
 ## ----graph subset specific partial dependence functions using alternative approach----
 funan1_pd_male_all$subgroup <- "Male"
