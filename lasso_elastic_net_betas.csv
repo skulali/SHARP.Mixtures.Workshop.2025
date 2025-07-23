@@ -1,0 +1,73 @@
+variable,beta,method
+lbx074la,0,Elastic Net
+lbx099la,0.00414088018648031,Elastic Net
+lbx118la,0.00593086046262051,Elastic Net
+lbx138la,0,Elastic Net
+lbx153la,0,Elastic Net
+lbx170la,0,Elastic Net
+lbx180la,0,Elastic Net
+lbx187la,0,Elastic Net
+lbxd03la,0,Elastic Net
+lbxd05la,0,Elastic Net
+lbxd07la,-0.0021575909263484,Elastic Net
+lbxf03la,0.0197379527424687,Elastic Net
+lbxf04la,0,Elastic Net
+lbxf05la,0,Elastic Net
+lbxf08la,0.00398961564132101,Elastic Net
+lbxpcbla,0.01031686454404,Elastic Net
+lbxhxcla,0.00361958376890809,Elastic Net
+lbx194la,0,Elastic Net
+lbxwbcsi,-0.00607670967726322,Elastic Net
+lbxlypct,-0.00107334524109197,Elastic Net
+lbxmopct,-0.00641426144516777,Elastic Net
+lbxnepct,-1.91882366335619e-4,Elastic Net
+lbxeopct,3.03933454983687e-6,Elastic Net
+lbxbapct,0.0177186042427178,Elastic Net
+bmi_cat32,-0.00476523641302688,Elastic Net
+bmi_cat33,-0.0183267023449617,Elastic Net
+edu_cat2,0.0196747217094976,Elastic Net
+edu_cat3,0.035911008241843,Elastic Net
+edu_cat4,0.0157644976295154,Elastic Net
+race_cat2,-0.0297008964831834,Elastic Net
+race_cat3,0.00317785978600054,Elastic Net
+race_cat4,-0.0388327027870552,Elastic Net
+male1,-0.0359285547578943,Elastic Net
+ln_lbxcot,0.00327418570096884,Elastic Net
+age_cent,-0.00656432293430432,Elastic Net
+age_sq,-1.07548330169617e-5,Elastic Net
+lbx074la,0,Lasso
+lbx099la,0.00233239851613128,Lasso
+lbx118la,0.00411022344781492,Lasso
+lbx138la,0,Lasso
+lbx153la,0,Lasso
+lbx170la,0,Lasso
+lbx180la,0,Lasso
+lbx187la,0,Lasso
+lbxd03la,0,Lasso
+lbxd05la,0,Lasso
+lbxd07la,0,Lasso
+lbxf03la,0.0230993719242618,Lasso
+lbxf04la,0,Lasso
+lbxf05la,0,Lasso
+lbxf08la,5.5455894419771e-4,Lasso
+lbxpcbla,0.0109212743339948,Lasso
+lbxhxcla,0,Lasso
+lbx194la,0,Lasso
+lbxwbcsi,-0.00621404249591972,Lasso
+lbxlypct,-0.00111040664711456,Lasso
+lbxmopct,-0.00648990469527495,Lasso
+lbxnepct,-2.0505920977491e-4,Lasso
+lbxeopct,7.41018990340559e-5,Lasso
+lbxbapct,0.0176474214976901,Lasso
+bmi_cat32,-0.00585131097173756,Lasso
+bmi_cat33,-0.0193137975376905,Lasso
+edu_cat2,0.0200526111400723,Lasso
+edu_cat3,0.036235897662177,Lasso
+edu_cat4,0.0163793827715305,Lasso
+race_cat2,-0.0323900079341318,Lasso
+race_cat3,0.00420357178285684,Lasso
+race_cat4,-0.0394685277577892,Lasso
+male1,-0.0345546970815124,Lasso
+ln_lbxcot,0.00335303128568775,Lasso
+age_cent,-0.0064703750748779,Lasso
+age_sq,-1.11257751873462e-5,Lasso
